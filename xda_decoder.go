@@ -90,6 +90,9 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 		}
 		pack.Message.AddField(field)
 	}
+	if kd.debug {
+		fmt.Printf("message:%+v, fileds:%+v\n", *(pack.Message), pack.Message.Fields)
+	}
 
 	return []*pipeline.PipelinePack{pack}, nil
 }
