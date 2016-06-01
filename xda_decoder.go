@@ -81,7 +81,7 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 				if err != nil {
 					field.AddValue(v)
 				} else {
-					field.AddValue(f)
+					field.AddValue(string(f))
 				}
 			} else {
 				field.AddValue(v)
@@ -91,7 +91,7 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 		pack.Message.AddField(field)
 	}
 	if xd.debug {
-		fmt.Printf("message:%+v, fileds:%+v\n", *(pack.Message), pack.Message.Fields)
+		fmt.Printf("message:%+v\n", *(pack.Message))
 	}
 
 	return []*pipeline.PipelinePack{pack}, nil
