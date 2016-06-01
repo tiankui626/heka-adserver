@@ -52,7 +52,7 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 		fmt.Printf("decode line:%s\n", line)
 	}
 	if !xd.regexp.Match([]byte(line)) {
-		fmt.Printf("regexp error:%s\n", err.Error())
+		fmt.Printf("regexp error:%s\n", line)
 		return
 	}
 	parsedLine := strings.Replace(line, " ", "&", -1)
