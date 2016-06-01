@@ -7,6 +7,7 @@ import (
 	"github.com/mozilla-services/heka/pipeline"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -81,7 +82,7 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 				if err != nil {
 					field.AddValue(v)
 				} else {
-					field.AddValue(string(f))
+					field.AddValue(strconv.FormatFloat(f, 'f', 2, 64))
 				}
 			} else {
 				field.AddValue(v)
