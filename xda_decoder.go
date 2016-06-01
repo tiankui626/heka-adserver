@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"time"
 )
 
 type XdaDecoder struct {
@@ -30,6 +31,17 @@ func getConfString(config interface{}, key string) (string, error) {
 		return value, nil
 	}
 	return "", nil
+}
+
+func timeParser(t string) (ms float64, err error) {
+	var d time.Duration
+	d, err = time.ParseDuration(t)
+	if err != nil {
+		fmt.Printf("time parser err:%s\n", err.Error())
+		return
+	}
+	ms = float64(d) / float64(time.Millisecond)
+	return
 }
 
 func (xd *XdaDecoder) Init(config interface{}) (err error) {
@@ -64,7 +76,17 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 	for k, vs := range values {
 		field := message.NewFieldInit(k, message.Field_STRING, "")
 		for _, v := range vs {
-			field.AddValue(v)
+			if strings.Contains(k, "cost") {
+				f, err := timeParser(v)
+				if err != nil {
+					field.AddValue(v)
+				} else {
+					field.AddValue(f)
+				}
+			} else {
+				field.AddValue(v)
+			}
+
 		}
 		pack.Message.AddField(field)
 	}
