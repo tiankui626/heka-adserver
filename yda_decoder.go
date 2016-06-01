@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-type XdaDecoder struct {
+type YdaDecoder struct {
 	format   string         //y.da 日志正则字符串
 	regexp   *regexp.Regexp //y.da 日志正则
 	queryKey string         //y.da query字段
@@ -31,7 +31,7 @@ func getConfString(config interface{}, key string) (string, error) {
 	return "", nil
 }
 
-func (xd *XdaDecoder) Init(config interface{}) (err error) {
+func (xd *YdaDecoder) Init(config interface{}) (err error) {
 	format, _ := getConfString(config, "format")
 	queryKey, _ := getConfString(config, "query")
 	if len(format) == 0 {
@@ -46,7 +46,7 @@ func (xd *XdaDecoder) Init(config interface{}) (err error) {
 	return
 }
 
-func (xd *XdaDecoder) Decode(pack *PipelinePack) (packs []*PipelinePack, err error) {
+func (xd *YdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.PipelinePack, err error) {
 	line := pack.Message.GetPayload()
 
 	fields := xd.regexp.FindStringSubmatch(line)
@@ -68,7 +68,7 @@ func (xd *XdaDecoder) Decode(pack *PipelinePack) (packs []*PipelinePack, err err
 }
 
 func init() {
-	RegisterPlugin("XdaDecoder", func() interface{} {
-		return new(XdaDecoder)
+	RegisterPlugin("YdaDecoder", func() interface{} {
+		return new(YdaDecoder)
 	})
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/mozilla-services/heka/message"
 	"github.com/mozilla-services/heka/pipeline"
+	"net/url"
 	"regexp"
 	"strings"
 )
@@ -41,7 +42,7 @@ func (xd *XdaDecoder) Init(config interface{}) (err error) {
 	return
 }
 
-func (xd *XdaDecoder) Decode(pack *PipelinePack) (packs []*PipelinePack, err error) {
+func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.PipelinePack, err error) {
 	line := pack.Message.GetPayload()
 	if !xd.regexp.Match([]byte(line)) {
 		fmt.Printf("regexp error:%s\n", err.Error())
