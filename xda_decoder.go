@@ -62,11 +62,11 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 		pack.Message.AddField(field)
 	}
 
-	return []*PipelinePack{pack}, nil
+	return []*pipeline.PipelinePack{pack}, nil
 }
 
 func init() {
-	RegisterPlugin("XdaDecoder", func() interface{} {
+	pipeline.RegisterPlugin("XdaDecoder", func() interface{} {
 		return new(XdaDecoder)
 	})
 }

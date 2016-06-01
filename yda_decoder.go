@@ -15,22 +15,6 @@ type YdaDecoder struct {
 	queryKey string         //y.da query字段
 }
 
-func getConfString(config interface{}, key string) (string, error) {
-	var (
-		fieldConf interface{}
-		ok        bool
-	)
-	conf := config.(pipeline.PluginConfig)
-	if fieldConf, ok = conf[key]; !ok {
-		return "", errors.New(fmt.Sprintf("No '%s' setting", key))
-	}
-	value, ok := fieldConf.(string)
-	if ok {
-		return value, nil
-	}
-	return "", nil
-}
-
 func (xd *YdaDecoder) Init(config interface{}) (err error) {
 	format, _ := getConfString(config, "format")
 	queryKey, _ := getConfString(config, "query")
@@ -51,11 +35,11 @@ func (xd *YdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 
 	fields := xd.regexp.FindStringSubmatch(line)
 	if fields == nil {
-		err = fmt.Errorf("access log line '%v' does not match given format '%v'", line, re)
+		err = fmt.Errorf("access log line '%v' does not match given format '%v'", line, xd.regexp)
 		return
 	}
 
-	for i, name := range re.SubexpNames() {
+	for i, name := range xd.regexp.SubexpNames() {
 		if i == 0 {
 			continue
 		}
@@ -64,11 +48,11 @@ func (xd *YdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 		pack.Message.AddField(field)
 	}
 
-	return []*PipelinePack{pack}, nil
+	return []*pipeline.PipelinePack{pack}, nil
 }
 
 func init() {
-	RegisterPlugin("YdaDecoder", func() interface{} {
+	pipeline.RegisterPlugin("YdaDecoder", func() interface{} {
 		return new(YdaDecoder)
 	})
 }
