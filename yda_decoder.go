@@ -31,7 +31,7 @@ func (xd *YdaDecoder) Init(config interface{}) (err error) {
 }
 
 func (xd *YdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.PipelinePack, err error) {
-	line := pack.Message.GetPayload()
+	line := strings.TrimSpace(pack.Message.GetPayload())
 
 	fields := xd.regexp.FindStringSubmatch(line)
 	if fields == nil {
