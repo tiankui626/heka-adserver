@@ -66,7 +66,7 @@ func (xd *XdaDecoder) Init(config interface{}) (err error) {
 }
 
 // Heka will call this to give us access to the runner.
-func (xd *XdaDecoder) SetDecoderRunner(dr DecoderRunner) {
+func (xd *XdaDecoder) SetDecoderRunner(dr pipeline.DecoderRunner) {
 	xd.dRunner = dr
 }
 
