@@ -128,7 +128,7 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 }
 
 func parseAdinfo(adinfo string, msg *message.Message) {
-	parsedAdinfo = replacer.Replace(adinfo)
+	parsedAdinfo := replacer.Replace(adinfo)
 	values, err := url.ParseQuery(parsedAdinfo)
 	if err != nil {
 		fmt.Printf("parse line error:%s\n", err.Error())
