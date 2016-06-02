@@ -60,7 +60,7 @@ func (xd *XdaDecoder) Init(config interface{}) (err error) {
 		xd.regexp = regexp.MustCompile(format)
 	}
 	xd.debug = (debug == "1")
-	replacer = strings.NewReplacer("{", "", "}", "", ",", "&")
+	replacer = strings.NewReplacer("{", "", "}", "", ",", "&", ":", "=")
 	return
 }
 
