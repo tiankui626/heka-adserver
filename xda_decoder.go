@@ -17,9 +17,10 @@ var (
 )
 
 type XdaDecoder struct {
-	format string         //x.da 日志正则字符串
-	regexp *regexp.Regexp //x.da 日志正则
-	debug  bool           //debug
+	dRunner pipeline.DecoderRunner
+	format  string         //x.da 日志正则字符串
+	regexp  *regexp.Regexp //x.da 日志正则
+	debug   bool           //debug
 }
 
 func getConfString(config interface{}, key string) (string, error) {
@@ -62,6 +63,11 @@ func (xd *XdaDecoder) Init(config interface{}) (err error) {
 	xd.debug = (debug == "1")
 	replacer = strings.NewReplacer("{", "", "}", "", ",", "&", ":", "=")
 	return
+}
+
+// Heka will call this to give us access to the runner.
+func (xd *XdaDecoder) SetDecoderRunner(dr DecoderRunner) {
+	xd.dRunner = dr
 }
 
 func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.PipelinePack, err error) {
@@ -112,7 +118,7 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 		}
 		for _, adinfo := range vs {
 			//{c:394,aid:106752,mid:4642,cid:3848,adtype:1,order:2,time:15,trigger:0}
-			apack := pipeline.NewPipelinePack(pack.RecycleChan)
+			apack := xd.dRunner.NewPack()
 			apack.Message = message.CopyMessage(pack.Message)
 			apack.Message.SetType("adinfo")
 			parseAdinfo(adinfo, apack.Message)
