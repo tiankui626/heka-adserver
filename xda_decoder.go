@@ -75,13 +75,13 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 	if xd.debug {
 		fmt.Printf("decode line:%s\n", line)
 	}
-	if !xd.regexp.Match([]byte(line)) {
+	if !xd.regexp.Match([]byte(line)) && xd.debug {
 		fmt.Printf("regexp error:%s\n", line)
 		return
 	}
 	parsedLine := strings.Replace(line, " ", "&", -1)
 	values, err := url.ParseQuery(parsedLine)
-	if err != nil {
+	if err != nil && xd.debug {
 		fmt.Printf("parse line error:%s\n", err.Error())
 		return
 	}
@@ -106,9 +106,6 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 		}
 		pack.Message.AddField(field)
 	}
-	if xd.debug {
-		fmt.Printf("message:%+v, type:%s\n", *(pack.Message), pack.Message.GetType())
-	}
 	//add non adinfo pack to packs
 	pack.Message.SetType("xdaall")
 	packs = append(packs, pack)
@@ -119,15 +116,21 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 		}
 		for _, adinfo := range vs {
 			//{c:394,aid:106752,mid:4642,cid:3848,adtype:1,order:2,time:15,trigger:0}
+			if xd.debug {
+				fmt.Printf("new pack")
+			}
 			apack := xd.dRunner.NewPack()
+			if xd.debug {
+				fmt.Printf("new pack sucess")
+			}
+			if apack == nil {
+				fmt.Printf("new pack failed")
+				continue
+			}
 			apack.Message = message.CopyMessage(pack.Message)
 			apack.Message.SetType("xdaadinfo")
 			parseAdinfo(adinfo, apack.Message)
 			packs = append(packs, apack)
-
-			if xd.debug {
-				fmt.Printf("adinfo message:%+v, type:%s\n", *(apack.Message), apack.Message.GetType())
-			}
 		}
 	}
 
