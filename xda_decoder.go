@@ -12,6 +12,10 @@ import (
 	"time"
 )
 
+var (
+	replacer *strings.Replacer
+)
+
 type XdaDecoder struct {
 	format string         //x.da 日志正则字符串
 	regexp *regexp.Regexp //x.da 日志正则
@@ -56,6 +60,7 @@ func (xd *XdaDecoder) Init(config interface{}) (err error) {
 		xd.regexp = regexp.MustCompile(format)
 	}
 	xd.debug = (debug == "1")
+	replacer = strings.NewReplacer("{", "", "}", "", ",", "&")
 	return
 }
 
@@ -75,6 +80,10 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 		return
 	}
 	for k, vs := range values {
+		//parse non adinfo keys
+		if "adinfo" == k {
+			continue
+		}
 		field := message.NewFieldInit(k, message.Field_STRING, "")
 		for _, v := range vs {
 			if strings.Contains(k, "cost") {
@@ -94,8 +103,45 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 	if xd.debug {
 		fmt.Printf("message:%+v\n", *(pack.Message))
 	}
+	//add non adinfo pack to packs
+	packs = append(packs, pack)
+	//parse adinfo keys
+	for k, vs := range values {
+		if "adinfo" != k {
+			continue
+		}
+		for _, adinfo := range vs {
+			//{c:394,aid:106752,mid:4642,cid:3848,adtype:1,order:2,time:15,trigger:0}
+			apack := pipeline.NewPipelinePack(pack.RecycleChan)
+			apack.Message = message.CopyMessage(pack.Message)
+			apack.Message.SetType("adinfo")
+			parseAdinfo(adinfo, apack.Message)
+			packs = append(packs, apack)
 
-	return []*pipeline.PipelinePack{pack}, nil
+			if xd.debug {
+				fmt.Printf("adinfo message:%+v\n", *(apack.Message))
+			}
+		}
+	}
+
+	return packs, nil
+}
+
+func parseAdinfo(adinfo string, msg *message.Message) {
+	parsedAdinfo = replacer.Replace(adinfo)
+	values, err := url.ParseQuery(parsedAdinfo)
+	if err != nil {
+		fmt.Printf("parse line error:%s\n", err.Error())
+		return
+	}
+	for k, vs := range values {
+		field := message.NewFieldInit(k, message.Field_STRING, "")
+		for _, v := range vs {
+			field.AddValue(v)
+		}
+		msg.AddField(field)
+	}
+
 }
 
 func init() {
