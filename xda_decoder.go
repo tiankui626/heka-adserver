@@ -107,7 +107,7 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 		pack.Message.AddField(field)
 	}
 	if xd.debug {
-		fmt.Printf("message:%+v\n", *(pack.Message))
+		fmt.Printf("message:%+v, type:%s\n", *(pack.Message), pack.Message.GetType())
 	}
 	//add non adinfo pack to packs
 	packs = append(packs, pack)
@@ -125,7 +125,7 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 			packs = append(packs, apack)
 
 			if xd.debug {
-				fmt.Printf("adinfo message:%+v\n", *(apack.Message))
+				fmt.Printf("adinfo message:%+v, type:%s\n", *(apack.Message), apack.Message.GetType())
 			}
 		}
 	}
