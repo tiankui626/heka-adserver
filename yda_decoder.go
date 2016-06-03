@@ -43,9 +43,35 @@ func (xd *YdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 		if i == 0 {
 			continue
 		}
-		field := message.NewFieldInit(name, message.Field_STRING, "")
-		field.AddValue(fields[i])
-		pack.Message.AddField(field)
+		if name == xd.queryKey {
+			//parse query
+			qs := strings.Split(fields[i], "?")
+			var query string
+			if len(qs) == 2 {
+				//request_path?a=b&c=d
+				field := message.NewFieldInit("request_path", message.Field_STRING, "")
+				field.AddValue(qs[0])
+				pack.Message.AddField(field)
+				query = qs[1]
+			} else if len(qs) == 1 {
+				//a=b&c=d
+				query = qs[0]
+			}
+			values, err := url.ParseQuery(query)
+			if err == nil {
+				for k, vs := range values {
+					//只取相同key的第一个
+					field := message.NewFieldInit(k, message.Field_STRING, "")
+					field.AddValue(vs[0])
+					pack.Message.AddField(field)
+				}
+			}
+		} else {
+			field := message.NewFieldInit(name, message.Field_STRING, "")
+			field.AddValue(fields[i])
+			pack.Message.AddField(field)
+		}
+
 	}
 
 	return []*pipeline.PipelinePack{pack}, nil
