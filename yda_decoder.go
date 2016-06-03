@@ -14,11 +14,13 @@ type YdaDecoder struct {
 	format   string         //y.da 日志正则字符串
 	regexp   *regexp.Regexp //y.da 日志正则
 	queryKey string         //y.da query字段
+	debug    bool           //debug
 }
 
 func (xd *YdaDecoder) Init(config interface{}) (err error) {
 	format, _ := getConfString(config, "format")
 	queryKey, _ := getConfString(config, "query")
+	debug, _ := getConfString(config, "debug")
 	if len(format) == 0 {
 		err = errors.New("format config is empty")
 	} else {
@@ -28,6 +30,8 @@ func (xd *YdaDecoder) Init(config interface{}) (err error) {
 		xd.regexp = regexp.MustCompile(fmt.Sprintf("^%v$", strings.Trim(re, " ")))
 	}
 	xd.queryKey = queryKey
+	xd.debug = (debug == "1")
+	fmt.Printf("config, format:%s, queryKey:%s, debug:%s\n", format, queryKey, debug)
 	return
 }
 
@@ -43,6 +47,9 @@ func (xd *YdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 	for i, name := range xd.regexp.SubexpNames() {
 		if i == 0 {
 			continue
+		}
+		if xd.debug {
+			fmt.Printf("i:%d, name:%s, value:%s\n", fields[i])
 		}
 		if name == xd.queryKey {
 			//parse query
