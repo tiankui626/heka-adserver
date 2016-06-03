@@ -49,7 +49,7 @@ func (xd *YdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 			continue
 		}
 		if xd.debug {
-			fmt.Printf("i:%d, name:%s, value:%s\n", fields[i])
+			fmt.Printf("i:%d, name:%s, value:%s\n", i, name, fields[i])
 		}
 		if name == xd.queryKey {
 			//parse query
