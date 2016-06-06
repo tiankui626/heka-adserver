@@ -17,6 +17,7 @@ type YdaDecoder struct {
 	queryKey  string         //y.da query字段
 	debug     bool           //debug
 	floatKeys []string       //float keys
+	logger    string
 }
 
 func (xd *YdaDecoder) Init(config interface{}) (err error) {
@@ -24,6 +25,7 @@ func (xd *YdaDecoder) Init(config interface{}) (err error) {
 	queryKey, _ := getConfString(config, "query")
 	debug, _ := getConfString(config, "debug")
 	floatkeys, _ := getConfString(config, "float_keys")
+	xd.logger, _ = getConfString(config, "logger")
 	if len(format) == 0 {
 		err = errors.New("format config is empty")
 	} else {
@@ -35,7 +37,7 @@ func (xd *YdaDecoder) Init(config interface{}) (err error) {
 	xd.queryKey = queryKey
 	xd.debug = (debug == "1")
 	xd.floatKeys = strings.Split(floatkeys, " ")
-	fmt.Printf("config, format:%s, queryKey:%s, debug:%s, floatKeys:%+v\n", format, queryKey, debug, xd.floatKeys)
+	fmt.Printf("config, format:%s, queryKey:%s, debug:%s, floatKeys:%+v, logger:%s\n", format, queryKey, debug, xd.floatKeys, xd.logger)
 	return
 }
 
@@ -105,6 +107,9 @@ func (xd *YdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 		}
 
 	}
+	//set logger
+	pack.Message.SetLogger(xd.logger)
+	pack.Message.SetType("YDaDecoder")
 	if xd.debug {
 		fmt.Printf("message:%+v\n", *pack.Message)
 	}
