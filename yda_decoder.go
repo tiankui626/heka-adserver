@@ -81,16 +81,13 @@ func (xd *YdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 						}
 					}
 					if isFloatKey {
-						field := message.NewFieldInit(k, message.Field_DOUBLE, "")
 						v_float, e := strconv.ParseFloat(vs[0], 64)
-						if e != nil {
-							fmt.Printf("key:%s,value:%s, parse float error:%s\n", k, vs[0], e.Error())
+						if e == nil {
+							field := message.NewFieldInit(k, message.Field_DOUBLE, "")
+							field.AddValue(v_float)
+							pack.Message.AddField(field)
 						}
-						e = field.AddValue(v_float)
-						if e != nil {
-							fmt.Printf("key:%s,value:%s,add float value error:%s\n", k, vs[0], e.Error())
-						}
-						pack.Message.AddField(field)
+
 					} else {
 						field := message.NewFieldInit(k, message.Field_STRING, "")
 						e := field.AddValue(vs[0])
