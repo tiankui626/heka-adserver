@@ -1,0 +1,48 @@
+[hekad]
+maxprocs = 3
+base_dir = "/var/cache/hekad_yda/"
+max_process_duration = 1000000
+plugin_chansize = 200
+#poolsize = 2000
+
+[yDaMonitor]
+type = "LogstreamerInput"
+log_directory = "/data/logs/ad/nginx/y.da.hunantv.com/access/"
+file_match = 'y\.da\.hunantv\.com-access\.log'
+decoder = "ydaLogDecoder"
+
+[ydaLogDecoder]
+type = "YdaDecoder"
+format = "$remote_addr|$time_iso|$request_method|$request_uri|$status|$body_bytes_sent|$http_referer|$http_x_forwarded_for|$http_user_agent|$request_time|$upstream_response_time|$request_body|$http_host|$hostname"
+debug = "0"
+query= "request_uri"
+
+
+[ydaallGroupFilter]
+type = "GroupFilter"
+message_matcher = 'Fields[request_path] =~ /impression/ && Fields[t] == "0"'
+interval = "60s"
+only_province = "1"
+debug = "0"
+groups = ""
+logger = "ydalogger"
+serie_name = "ydaall"
+tags = "Hostname b os cd adtype tn t"
+values = ""
+
+[InfluxdbOutput]
+type = "HttpOutput"
+message_matcher = "Logger =~ /ydalogger/ "
+encoder = "PayloadEncoder"
+address = "http://10.100.2.61:8086/write?db=yda&precision=s"
+http_timeout = 500
+
+[RstEncoder]
+
+[Dashboard]
+type = "DashboardOutput"
+address = ":4354"
+ticker_interval = 15
+
+[PayloadEncoder]
+append_newlines = false

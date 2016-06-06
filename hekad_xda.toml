@@ -1,0 +1,63 @@
+[hekad]
+maxprocs = 3
+base_dir = "/var/cache/hekad_xda/"
+max_process_duration = 1000000
+plugin_chansize = 200
+poolsize = 2000
+
+[xDaMonitor]
+type = "LogstreamerInput"
+log_directory = "/data/logs/ad/adserver/"
+file_match = 'adserver\.log'
+decoder = "xdaLogDecoder"
+
+[xdaLogDecoder]
+type = "XdaDecoder"
+format = "INFO"
+debug = "0"
+
+
+[xdaallGroupFilter]
+type = "GroupFilter"
+message_matcher = 'Type == "xdaall"'
+interval = "60s"
+only_province = "1"
+debug = "0"
+groups = ""
+logger = "xdalogger"
+serie_name = "xdaall"
+tags = "Hostname pid pmplen adlen"
+values = "cost vic_cost freq_cost pmp_cost s2s_cost"
+
+[xdaadinfoGroupFilter]
+type = "GroupFilter"
+message_matcher = 'Type == "xdaadinfo"'
+interval = "60s"
+only_province = "1"
+debug = "0"
+groups = ""
+logger = "xdalogger"
+serie_name = "xdaadinfo"
+tags = "Hostname pid os mid adtype order"
+values = ""
+
+[InfluxdbOutput]
+type = "HttpOutput"
+message_matcher = "Logger =~ /xdalogger/ "
+encoder = "PayloadEncoder"
+address = "http://10.100.2.61:8086/write?db=xdaapp&precision=s"
+http_timeout = 500
+
+[Dashboard]
+type = "DashboardOutput"
+address = ":4354"
+ticker_interval = 15
+
+[PayloadEncoder]
+append_newlines = false
+
+#[LogOutput]
+#message_matcher = "TRUE"
+#encoder="RstEncoder"
+#
+#[RstEncoder]

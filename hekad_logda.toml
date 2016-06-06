@@ -1,0 +1,49 @@
+[hekad]
+maxprocs = 3
+base_dir = "/var/cache/hekad_logda/"
+max_process_duration = 1000000
+plugin_chansize = 200
+#poolsize = 2000
+
+[logDaMonitor]
+type = "LogstreamerInput"
+log_directory = "/data/logs/ad/nginx/log.da.hunantv.com/access/"
+file_match = 'log\.da\.hunantv\.com-access\.log'
+decoder = "logdaLogDecoder"
+
+[logdaLogDecoder]
+type = "YdaDecoder"
+format = "$remote_addr^A$http_x_forwarded_for^A$host^A[$time_iso]^A$request_time^A$http_referer^A$http_user_agent^A^A$server_addr^A$request_length^A$status^A$request^A$request_body"
+debug = "0"
+query= "request_body"
+float_keys= "td"
+
+
+[logdaallGroupFilter]
+type = "GroupFilter"
+message_matcher = 'Fields[td] != NIL && Fields[td] < 20000'
+interval = "60s"
+only_province = "1"
+debug = "0"
+groups = ""
+logger = "logdalogger"
+serie_name = "logda"
+tags = "Hostname b ty rs pf app"
+values = "td"
+
+[InfluxdbOutput]
+type = "HttpOutput"
+message_matcher = "Logger =~ /logdalogger/ "
+encoder = "PayloadEncoder"
+address = "http://10.100.2.61:8086/write?db=logda&precision=s"
+http_timeout = 500
+
+[RstEncoder]
+
+[Dashboard]
+type = "DashboardOutput"
+address = ":4354"
+ticker_interval = 15
+
+[PayloadEncoder]
+append_newlines = false

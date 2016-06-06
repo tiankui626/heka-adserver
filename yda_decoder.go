@@ -11,16 +11,18 @@ import (
 )
 
 type YdaDecoder struct {
-	format   string         //y.da 日志正则字符串
-	regexp   *regexp.Regexp //y.da 日志正则
-	queryKey string         //y.da query字段
-	debug    bool           //debug
+	format    string         //y.da 日志正则字符串
+	regexp    *regexp.Regexp //y.da 日志正则
+	queryKey  string         //y.da query字段
+	debug     bool           //debug
+	floatKeys []string       //float keys
 }
 
 func (xd *YdaDecoder) Init(config interface{}) (err error) {
 	format, _ := getConfString(config, "format")
 	queryKey, _ := getConfString(config, "query")
 	debug, _ := getConfString(config, "debug")
+	floatkeys, _ := getConfString(config, "float_keys")
 	if len(format) == 0 {
 		err = errors.New("format config is empty")
 	} else {
@@ -31,7 +33,8 @@ func (xd *YdaDecoder) Init(config interface{}) (err error) {
 	}
 	xd.queryKey = queryKey
 	xd.debug = (debug == "1")
-	fmt.Printf("config, format:%s, queryKey:%s, debug:%s\n", format, queryKey, debug)
+	xd.floatKeys - strings.Split(floatkeys, " ")
+	fmt.Printf("config, format:%s, queryKey:%s, debug:%s, floatKeys:%+v\n", format, queryKey, debug, xd.floatKeys)
 	return
 }
 
@@ -69,9 +72,32 @@ func (xd *YdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 			if err == nil {
 				for k, vs := range values {
 					//只取相同key的第一个
-					field := message.NewFieldInit(k, message.Field_STRING, "")
-					field.AddValue(vs[0])
-					pack.Message.AddField(field)
+					isFloatKey := false
+					for _, fkey := range xd.floatKeys {
+						if k == fkey {
+							isFloatKey = true
+							break
+						}
+					}
+					if isFloatKey {
+						field := message.NewFieldInit(name, message.Field_DOUBLE, "")
+						v_float, e := strconv.ParseFloat(vs[0], 64)
+						if e != nil {
+							fmt.Printf("key:%s,value:%s, parse float error:%s\n", k, vs[0], e.Error())
+						}
+						e = field.AddValue(v_float)
+						if e != nil {
+							fmt.Printf("key:%s,value:%s,add float value error:%s\n", k, vs[0], e.Error())
+						}
+						pack.Message.AddField(field)
+					} else {
+						field := message.NewFieldInit(name, message.Field_STRING, "")
+						e := field.AddValue(vs[0])
+						if e != nil {
+							fmt.Printf("key:%s,value:%s, add value failed:%s\n", k, vs[0], e.Error())
+						}
+						pack.Message.AddField(field)
+					}
 				}
 			}
 		} else {
