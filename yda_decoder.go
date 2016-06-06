@@ -7,6 +7,7 @@ import (
 	"github.com/mozilla-services/heka/pipeline"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -33,7 +34,7 @@ func (xd *YdaDecoder) Init(config interface{}) (err error) {
 	}
 	xd.queryKey = queryKey
 	xd.debug = (debug == "1")
-	xd.floatKeys - strings.Split(floatkeys, " ")
+	xd.floatKeys = strings.Split(floatkeys, " ")
 	fmt.Printf("config, format:%s, queryKey:%s, debug:%s, floatKeys:%+v\n", format, queryKey, debug, xd.floatKeys)
 	return
 }
