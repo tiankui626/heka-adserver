@@ -108,6 +108,9 @@ func (xd *YdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 		}
 
 	}
+	if xd.debug {
+		fmt.Printf("message:%+v\n", *pack.Message)
+	}
 
 	return []*pipeline.PipelinePack{pack}, nil
 }
