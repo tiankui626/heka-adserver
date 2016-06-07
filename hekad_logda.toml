@@ -35,7 +35,7 @@ logger = "errdadecoderlogger"
 
 [logdaallGroupFilter]
 type = "GroupFilter"
-message_matcher = 'Logger =~ /logdadecoderlogger/  && Fields[td] != NIL && Fields[td] < 20000'
+message_matcher = 'Logger =~ /logdadecoderlogger/  && Fields[td] != NIL && Fields[td] < 20000 && Fields[td] > 0'
 interval = "60s"
 only_province = "1"
 debug = "0"
