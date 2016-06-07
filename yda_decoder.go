@@ -82,10 +82,15 @@ func (xd *YdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 					if len(ffvalue) != 0 {
 						//k is in field filters, check it
 						isInFiledFilters := false
-						for _, ffv := range xd.fieldFilters {
-							if strings.Contains(vs[0], ffv) {
-								isInFiledFilters = true
-								break
+						for fk, ffvs := range xd.fieldFilters {
+							if fk != k {
+								continue
+							}
+							for _, ffv := range ffvs {
+								if strings.Contains(v, ffv) {
+									isInFiledFilters = true
+									break
+								}
 							}
 						}
 						if !isInFiledFilters {
