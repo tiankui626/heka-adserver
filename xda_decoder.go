@@ -139,6 +139,7 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 		}
 		//add non adinfo pack to packs
 		pack.Message.SetType("xdaall")
+		pack.Message.SetLogger(xd.logger)
 		packs = append(packs, pack)
 	}
 	//parse adinfo keys
@@ -148,28 +149,18 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 		}
 		for _, adinfo := range vs {
 			//{c:394,aid:106752,mid:4642,cid:3848,adtype:1,order:2,time:15,trigger:0}
-			if xd.debug {
-				fmt.Printf("new pack\n")
-			}
 			apack := xd.dRunner.NewPack()
-			if xd.debug {
-				fmt.Printf("new pack sucess\n")
-			}
 			if apack == nil {
 				fmt.Printf("new pack failed\n")
 				continue
 			}
 			apack.Message = message.CopyMessage(pack.Message)
 			apack.Message.SetType("xdaadinfo")
+			pack.Message.SetLogger(xd.logger)
 			parseAdinfo(adinfo, apack.Message)
 			packs = append(packs, apack)
 		}
 	}
-
-	//set logger
-	pack.Message.SetLogger(xd.logger)
-	pack.Message.SetType("XDaDecoder")
-
 	return packs, nil
 }
 
