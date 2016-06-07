@@ -17,10 +17,12 @@ var (
 )
 
 type XdaDecoder struct {
-	dRunner pipeline.DecoderRunner
-	format  string         //x.da 日志正则字符串
-	regexp  *regexp.Regexp //x.da 日志正则
-	debug   bool           //debug
+	dRunner      pipeline.DecoderRunner
+	format       string         //x.da 日志正则字符串
+	regexp       *regexp.Regexp //x.da 日志正则
+	debug        bool           //debug
+	logger       string
+	fieldFilters url.Values
 }
 
 func getConfString(config interface{}, key string) (string, error) {
@@ -53,6 +55,8 @@ func timeParser(t string) (ms float64, err error) {
 func (xd *XdaDecoder) Init(config interface{}) (err error) {
 	format, _ := getConfString(config, "format")
 	debug, _ := getConfString(config, "debug")
+	xd.logger, _ = getConfString(config, "logger")
+	ffilters, _ := getConfString(config, "field_filters")
 	fmt.Printf("xdadecoder init, format:%s, debug:%s\n", format, debug)
 	if len(format) == 0 {
 		err = errors.New("format config is empty")
@@ -62,6 +66,7 @@ func (xd *XdaDecoder) Init(config interface{}) (err error) {
 	}
 	xd.debug = (debug == "1")
 	replacer = strings.NewReplacer("{", "", "}", "", ",", "&", ":", "=")
+	xd.fieldFilters, _ = url.ParseQuery(ffilters)
 	return
 }
 
@@ -90,8 +95,24 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 		if "adinfo" == k {
 			continue
 		}
-		field := message.NewFieldInit(k, message.Field_STRING, "")
+
 		for _, v := range vs {
+			ffvalue := xd.fieldFilters.Get(k)
+			if len(ffvalue) != 0 {
+				//k is in field filters, check it
+				isInFiledFilters := false
+				for _, ffv := range xd.fieldFilters {
+					if strings.Contains(v, ffv) {
+						isInFiledFilters = true
+						break
+					}
+				}
+				if !isInFiledFilters {
+					//k is in filed filters, but values is not in ffvalues, do not add value to message
+					continue
+				}
+			}
+			field := message.NewFieldInit(k, message.Field_STRING, "")
 			if strings.Contains(k, "cost") {
 				f, err := timeParser(v)
 				if err != nil {
@@ -102,9 +123,9 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 			} else {
 				field.AddValue(v)
 			}
-
+			pack.Message.AddField(field)
 		}
-		pack.Message.AddField(field)
+
 	}
 	//add non adinfo pack to packs
 	pack.Message.SetType("xdaall")
@@ -133,6 +154,10 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 			packs = append(packs, apack)
 		}
 	}
+
+	//set logger
+	pack.Message.SetLogger(xd.logger)
+	pack.Message.SetType("XDaDecoder")
 
 	return packs, nil
 }

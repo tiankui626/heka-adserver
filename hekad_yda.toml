@@ -16,6 +16,8 @@ type = "YdaDecoder"
 format = "$remote_addr|$time_iso|$request_method|$request_uri|$status|$body_bytes_sent|$http_referer|$http_x_forwarded_for|$http_user_agent|$request_time|$upstream_response_time|$request_body|$http_host|$hostname"
 debug = "0"
 query= "request_uri"
+# field_filters format "xx=regrexx&yy=regrexy"
+field_filters = "appver=4.7.0&appver=4.6.9"
 
 
 [ydaallGroupFilter]

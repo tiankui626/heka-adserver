@@ -11,17 +11,31 @@ log_directory = "/data/logs/ad/nginx/log.da.hunantv.com/access/"
 file_match = 'log\.da\.hunantv\.com-access\.log'
 decoder = "logdaLogDecoder"
 
+[errDaMonitor]
+type = "LogstreamerInput"
+log_directory = "/data/logs/ad/nginx/error.da.hunantv.com/access/"
+file_match = 'error\.da\.hunantv\.com-access\.log'
+decoder = "errdaLogDecoder"
+
 [logdaLogDecoder]
 type = "YdaDecoder"
 format = "$remote_addr^A$http_x_forwarded_for^A$host^A[$time_iso]^A$request_time^A$http_referer^A$http_user_agent^A^A$server_addr^A$request_length^A$status^A$request^A$request_body"
 debug = "0"
-query= "request_body"
+query = "request_body"
 float_keys= "td"
+logger = "logdadecoderlogger"
 
+[errdaLogDecoder]
+type = "YdaDecoder"
+format = "$remote_addr^A$http_x_forwarded_for^A$host^A[$time_iso]^A$request_time^A$http_referer^A$http_user_agent^A^A$server_addr^A$request_length^A$status^A$request^A$request_body"
+debug = "0"
+query= "request_body"
+float_keys= ""
+logger = "errdadecoderlogger"
 
 [logdaallGroupFilter]
 type = "GroupFilter"
-message_matcher = 'Fields[td] != NIL && Fields[td] < 20000'
+message_matcher = 'Logger =~ /logdadecoderlogger/  && Fields[td] != NIL && Fields[td] < 20000'
 interval = "60s"
 only_province = "1"
 debug = "0"
@@ -31,11 +45,30 @@ serie_name = "logda"
 tags = "Hostname b ty rs pf app"
 values = "td"
 
-[InfluxdbOutput]
+[errdaallGroupFilter]
+type = "GroupFilter"
+message_matcher = 'Logger =~ /errdadecoderlogger/ '
+interval = "60s"
+only_province = "1"
+debug = "0"
+groups = ""
+logger = "errdalogger"
+serie_name = "errda"
+tags = "Hostname pf app code b o"
+values = ""
+
+[logdaInfluxdbOutput]
 type = "HttpOutput"
 message_matcher = "Logger =~ /logdalogger/ "
 encoder = "PayloadEncoder"
 address = "http://10.100.2.61:8086/write?db=logda&precision=s"
+http_timeout = 500
+
+[errdaInfluxdbOutput]
+type = "HttpOutput"
+message_matcher = "Logger =~ /errdalogger/ "
+encoder = "PayloadEncoder"
+address = "http://10.100.2.61:8086/write?db=errda&precision=s"
 http_timeout = 500
 
 [RstEncoder]

@@ -12,12 +12,13 @@ import (
 )
 
 type YdaDecoder struct {
-	format    string         //y.da 日志正则字符串
-	regexp    *regexp.Regexp //y.da 日志正则
-	queryKey  string         //y.da query字段
-	debug     bool           //debug
-	floatKeys []string       //float keys
-	logger    string
+	format       string         //y.da 日志正则字符串
+	regexp       *regexp.Regexp //y.da 日志正则
+	queryKey     string         //y.da query字段
+	debug        bool           //debug
+	floatKeys    []string       //float keys
+	logger       string
+	fieldFilters url.Values
 }
 
 func (xd *YdaDecoder) Init(config interface{}) (err error) {
@@ -26,6 +27,7 @@ func (xd *YdaDecoder) Init(config interface{}) (err error) {
 	debug, _ := getConfString(config, "debug")
 	floatkeys, _ := getConfString(config, "float_keys")
 	xd.logger, _ = getConfString(config, "logger")
+	ffilters, _ := getConfString(config, "field_filters")
 	if len(format) == 0 {
 		err = errors.New("format config is empty")
 	} else {
@@ -37,7 +39,9 @@ func (xd *YdaDecoder) Init(config interface{}) (err error) {
 	xd.queryKey = queryKey
 	xd.debug = (debug == "1")
 	xd.floatKeys = strings.Split(floatkeys, " ")
-	fmt.Printf("config, format:%s, queryKey:%s, debug:%s, floatKeys:%+v, logger:%s\n", format, queryKey, debug, xd.floatKeys, xd.logger)
+	xd.fieldFilters, _ = url.ParseQuery(ffilters)
+	fmt.Printf("config, format:%s, queryKey:%s, debug:%s, floatKeys:%+v, logger:%s, fieldFilters:%+v\n",
+		format, queryKey, debug, xd.floatKeys, xd.logger, xd.fieldFilters)
 	return
 }
 
@@ -74,6 +78,21 @@ func (xd *YdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 			values, err := url.ParseQuery(query)
 			if err == nil {
 				for k, vs := range values {
+					ffvalue := xd.fieldFilters.Get(k)
+					if len(ffvalue) != 0 {
+						//k is in field filters, check it
+						isInFiledFilters := false
+						for _, ffv := range xd.fieldFilters {
+							if strings.Contains(vs[0], ffv) {
+								isInFiledFilters = true
+								break
+							}
+						}
+						if !isInFiledFilters {
+							//k is in filed filters, but values is not in ffvalues, do not add value to message
+							continue
+						}
+					}
 					//只取相同key的第一个
 					isFloatKey := false
 					for _, fkey := range xd.floatKeys {
