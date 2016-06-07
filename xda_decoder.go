@@ -137,11 +137,10 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 			}
 			pack.Message.AddField(field)
 		}
-
+		//add non adinfo pack to packs
+		pack.Message.SetType("xdaall")
+		packs = append(packs, pack)
 	}
-	//add non adinfo pack to packs
-	pack.Message.SetType("xdaall")
-	packs = append(packs, pack)
 	//parse adinfo keys
 	for k, vs := range values {
 		if "adinfo" != k {
