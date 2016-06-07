@@ -29,7 +29,7 @@ debug = "0"
 groups = ""
 logger = "ydalogger"
 serie_name = "ydaall"
-tags = "Hostname b os cd adtype tn t"
+tags = "Hostname b os cd adtype tn t appver"
 values = ""
 
 [InfluxdbOutput]

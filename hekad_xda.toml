@@ -47,7 +47,7 @@ values = ""
 type = "HttpOutput"
 message_matcher = "Logger =~ /xdalogger/ "
 encoder = "PayloadEncoder"
-address = "http://10.100.2.61:8086/write?db=xdaapp&precision=s"
+address = "http://10.100.2.61:8086/write?db=xda&precision=s"
 http_timeout = 500
 
 [Dashboard]
