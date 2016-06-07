@@ -87,7 +87,7 @@ func (xd *YdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 								continue
 							}
 							for _, ffv := range ffvs {
-								if strings.Contains(v, ffv) {
+								if strings.Contains(vs[0], ffv) {
 									isInFiledFilters = true
 									break
 								}
