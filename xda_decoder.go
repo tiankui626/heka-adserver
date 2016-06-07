@@ -23,6 +23,7 @@ type XdaDecoder struct {
 	debug        bool           //debug
 	logger       string
 	fieldFilters url.Values
+	spliter      string //日志分隔符
 }
 
 func getConfString(config interface{}, key string) (string, error) {
@@ -57,6 +58,8 @@ func (xd *XdaDecoder) Init(config interface{}) (err error) {
 	debug, _ := getConfString(config, "debug")
 	xd.logger, _ = getConfString(config, "logger")
 	ffilters, _ := getConfString(config, "field_filters")
+	xd.spliter, _ = getConfString(config, "spliter")
+
 	fmt.Printf("xdadecoder init, format:%s, debug:%s\n", format, debug)
 	if len(format) == 0 {
 		err = errors.New("format config is empty")
@@ -67,6 +70,10 @@ func (xd *XdaDecoder) Init(config interface{}) (err error) {
 	xd.debug = (debug == "1")
 	replacer = strings.NewReplacer("{", "", "}", "", ",", "&", ":", "=")
 	xd.fieldFilters, _ = url.ParseQuery(ffilters)
+	if len(xd.spliter) == 0 {
+		//default
+		xd.spliter = " "
+	}
 	return
 }
 
@@ -84,7 +91,7 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 		fmt.Printf("regexp error:%s\n", line)
 		return
 	}
-	parsedLine := strings.Replace(line, " ", "&", -1)
+	parsedLine := strings.Replace(line, xd.spliter, "&", -1)
 	values, err := url.ParseQuery(parsedLine)
 	if err != nil && xd.debug {
 		fmt.Printf("parse line error:%s\n", err.Error())
