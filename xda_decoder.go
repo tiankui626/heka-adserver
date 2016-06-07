@@ -23,6 +23,7 @@ type XdaDecoder struct {
 	debug        bool           //debug
 	logger       string
 	fieldFilters url.Values
+	spliter      string //日志分隔符
 }
 
 func getConfString(config interface{}, key string) (string, error) {
@@ -57,6 +58,8 @@ func (xd *XdaDecoder) Init(config interface{}) (err error) {
 	debug, _ := getConfString(config, "debug")
 	xd.logger, _ = getConfString(config, "logger")
 	ffilters, _ := getConfString(config, "field_filters")
+	xd.spliter, _ = getConfString(config, "spliter")
+
 	fmt.Printf("xdadecoder init, format:%s, debug:%s\n", format, debug)
 	if len(format) == 0 {
 		err = errors.New("format config is empty")
@@ -67,6 +70,10 @@ func (xd *XdaDecoder) Init(config interface{}) (err error) {
 	xd.debug = (debug == "1")
 	replacer = strings.NewReplacer("{", "", "}", "", ",", "&", ":", "=")
 	xd.fieldFilters, _ = url.ParseQuery(ffilters)
+	if len(xd.spliter) == 0 {
+		//default
+		xd.spliter = " "
+	}
 	return
 }
 
@@ -84,7 +91,7 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 		fmt.Printf("regexp error:%s\n", line)
 		return
 	}
-	parsedLine := strings.Replace(line, " ", "&", -1)
+	parsedLine := strings.Replace(line, xd.spliter, "&", -1)
 	values, err := url.ParseQuery(parsedLine)
 	if err != nil && xd.debug {
 		fmt.Printf("parse line error:%s\n", err.Error())
@@ -134,7 +141,9 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 	}
 	//add non adinfo pack to packs
 	pack.Message.SetType("xdaall")
+	pack.Message.SetLogger(xd.logger)
 	packs = append(packs, pack)
+
 	//parse adinfo keys
 	for k, vs := range values {
 		if "adinfo" != k {
@@ -142,24 +151,18 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 		}
 		for _, adinfo := range vs {
 			//{c:394,aid:106752,mid:4642,cid:3848,adtype:1,order:2,time:15,trigger:0}
-			if xd.debug {
-				fmt.Printf("new pack\n")
-			}
 			apack := xd.dRunner.NewPack()
-			if xd.debug {
-				fmt.Printf("new pack sucess\n")
-			}
 			if apack == nil {
 				fmt.Printf("new pack failed\n")
 				continue
 			}
 			apack.Message = message.CopyMessage(pack.Message)
 			apack.Message.SetType("xdaadinfo")
+			pack.Message.SetLogger(xd.logger)
 			parseAdinfo(adinfo, apack.Message)
 			packs = append(packs, apack)
 		}
 	}
-
 	return packs, nil
 }
 
