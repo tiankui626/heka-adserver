@@ -1,6 +1,6 @@
 [hekad]
 maxprocs = 3
-base_dir = "/var/cache/hekad_logda/"
+base_dir = "/data/ad/admonitor/cache"
 max_process_duration = 1000000
 plugin_chansize = 200
 #poolsize = 2000
