@@ -121,7 +121,8 @@ func (xd *XdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 				}
 				if !isInFiledFilters {
 					//k is in filed filters, but values is not in ffvalues, do not add value to message
-					continue
+					v = "OTHERS"
+					//continue
 				}
 			}
 			field := message.NewFieldInit(k, message.Field_STRING, "")

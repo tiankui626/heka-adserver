@@ -95,7 +95,8 @@ func (xd *YdaDecoder) Decode(pack *pipeline.PipelinePack) (packs []*pipeline.Pip
 						}
 						if !isInFiledFilters {
 							//k is in filed filters, but values is not in ffvalues, do not add value to message
-							continue
+							//continue
+							vs[0] = "OTHERS"
 						}
 					}
 					//只取相同key的第一个
